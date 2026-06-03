@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    ".opencode/rules/context7.md"
+  ],
+  "mcp": {
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "headers": {
+        "CONTEXT7_API_KEY": "<YOUR_API_KEY>"
+      },
+      "enabled": true
+    }
+  },
+  "command": {
+    "commit": {
+      "description": "Crea un conventional commit con los cambios actuales",
+      "subtask": false,
+      "template": "Actúa como un asistente de git especializado en Conventional Commits.\n\nPRIMERO, ejecuta `git status --porcelain` para ver el estado completo del repositorio.\nSI no hay cambios (ni staged, ni unstaged, ni untracked), responde \"No hay cambios para committear\" y DETENTE.\n\nSI hay cambios, muéstrame el resumen (archivos modificados/agregados/eliminados) y luego:\n- Ejecuta `git diff --staged` si hay cambios staged\n- Ejecuta `git diff` si hay cambios unstaged (sean o no adicionales a los staged)\n\nCon base en el diff completo, genera un mensaje Conventional Commit con este formato:\n\n```\n<tipo>(<scope opcional>): <descripción imperativa>\n\n<cuerpo opcional con más detalles>\n```\n\nReglas estrictas:\n- PRIMERA LÍNEA: máximo 72 caracteres\n- Tipo: feat | fix | chore | refactor | test | docs | style | perf\n- Si hay cambios que rompen compatibilidad, añade `!` después del tipo (ej. `feat!:`)\n- Scope solo si aplica claramente (api, auth, db, config, etc.)\n- Descripción en imperativo, sin mayúscula inicial, sin punto final\n- Si el cambio lo justifica, añade un body descriptivo tras línea en blanco\n\nANTES de ejecutar el commit, MUÉSTRAME el mensaje y PREGÚNTAME si procedo.\nSolo si confirmo, ejecuta: `git add -A` y `git commit -m \"<mensaje>\"`."
+    },
+    "review-docs": {
+      "description": "Revisa la documentación del proyecto y detecta desactualizaciones o inconsistencias contra el código fuente",
+      "subtask": false,
+      "template": "Eres un revisor de documentación técnica. Tu tarea es verificar que la documentación y el código fuente de este frontend React + TypeScript estén alineados.\n\n1. Lee TODOS estos archivos de documentación y configuración:\n   - AGENTS.md (convenciones del proyecto)\n   - .env.example (variables de entorno documentadas)\n   - .opencode/opencode.jsonc (configuración de OpenCode)\n   - .opencode/opencode.example.jsonc (plantilla de configuración)\n   - package.json (metadatos, scripts, dependencias)\n   - vite.config.ts (configuración de build)\n   - tsconfig.json (configuración de TypeScript)\n\n2. Lee los archivos fuente principales para verificar claims vs realidad:\n   - src/api/ (todos los módulos de API - verifica que los endpoints documentados en AGENTS.md sean correctos)\n   - src/routes/index.tsx (todas las rutas definidas)\n   - src/types/api.types.ts (tipos de respuesta)\n   - src/lib/validators.ts (esquemas de validación)\n   - src/lib/utils.ts (utilidades)\n   - src/components/ (componentes compartidos)\n\n3. Para cada archivo de documentación verifica:\n   - ¿Las rutas/endpoints documentados coinciden con la implementación real? (src/routes/index.tsx vs AGENTS.md)\n   - ¿Las convenciones descritas (nombres de exportación, imports, etc.) se cumplen en el código real?\n   - ¿Las dependencias y librerías documentadas coinciden con package.json?\n   - ¿Hay información obsoleta (versiones, fechas, screenshots)?\n   - ¿Hay referencias rotas a archivos que ya no existen?\n   - ¿Hay claims no verificables?\n   - ¿Faltan secciones importantes?\n\n4. Genera un reporte con:\n   - Para cada archivo: lista de issues encontrados\n   - Prioridad de cada issue (alta/media/baja)\n   - Acción correctiva sugerida\n   - Resumen ejecutivo al inicio\n\nDevuelve solo el reporte, sin comentarios adicionales."
+    }
+  }
+}
