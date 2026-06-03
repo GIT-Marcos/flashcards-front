@@ -8,7 +8,7 @@
 | `npm run build` | Production build (single HTML file via `vite-plugin-singlefile`) |
 | `npm run preview` | Preview production build |
 
-No test, lint, formatter, or typecheck scripts are configured. `tsconfig.json` has `strict: true`, `noUnusedLocals`, `noUnusedParameters` as the only static analysis.
+No test, lint, formatter, or typecheck scripts are configured. `tsconfig.json` has `strict: true`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch` as static analysis.
 
 ## Path alias
 
@@ -19,6 +19,7 @@ No test, lint, formatter, or typecheck scripts are configured. `tsconfig.json` h
 All routes defined in `src/routes/index.tsx` using react-router-dom v7:
 
 - `/login`, `/register` — public
+- `/reviews` — protected
 - `/decks`, `/decks/new`, `/decks/:deckId`, `/decks/:deckId/edit`, `/decks/:deckId/study` — protected (wrapped by `ProtectedRoute` + `AppLayout`)
 - `/stats`, `/settings` — protected
 - `*` — `NotFoundPage`
@@ -40,11 +41,27 @@ All routes defined in `src/routes/index.tsx` using react-router-dom v7:
 
 ## Pagination
 
-Cursor-based `Window<T>` response type. Pages accumulate in local `useState` inside page components via "Load more" buttons. See `src/types/api.types.ts`.
+Cursor-based `Window<T>` response type. Pages accumulate via `useInfiniteQuery` with `data.pages.flatMap()` inside page components. See `src/types/api.types.ts`.
+
+## CORS
+
+No se necesita proxy de Vite. El backend ya configura CORS correctamente:
+
+| Configuración | Valor |
+|---|---|
+| `allowed-origins` | `${ALLOWED_ORIGINS:http://localhost:5173}` |
+| `secure-cookie` | `true` |
+| `same-site` | `None` |
+
+- **Desarrollo:** Frontend (`localhost:5173`) → peticiones cross-origin directas a `localhost:8080`. El backend acepta `localhost:5173` como origen. Las cookies (`SameSite=None; Secure`) funcionan porque `localhost` es considerado contexto seguro por los navegadores.
+- **Producción:** Se setea `VITE_API_URL` y `ALLOWED_ORIGINS` con las URLs correspondientes al deploy. El backend debe incluir todos los orígenes desde los que se sirva el frontend.
+- **Preflights OPTIONS:** Se disparan en cada request autenticado (header `Authorization`) y en POSTs a `/auth/login`, `/auth/refresh-token`, `/reviews/` (header `Time-Zone`). El backend los maneja automáticamente (Spring Boot).
+
+Si en el futuro se quisiera eliminar los preflights en desarrollo, se puede agregar `server.proxy` en `vite.config.ts` y cambiar `API_URL` a `''` en `src/lib/constants.ts`.
 
 ## Code conventions
 
-- **Named exports** everywhere (only `App.tsx` and `main.tsx` use `export default`).
+- **Named exports** everywhere (only `App.tsx` and `api/client.ts` use `export default`).
 - **Zod** schemas in `src/lib/validators.ts`, validated via `.safeParse()` in submit handlers. Types inferred: `type LoginFormData = z.infer<typeof loginSchema>`.
 - **`cn()` utility** in `src/lib/utils.ts` (hand-rolled, not `clsx`/`tailwind-merge` despite both being in deps).
 - **Emoji icons** throughout (no icon library).

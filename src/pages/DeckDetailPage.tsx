@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDecks, deleteDeck } from '@/api/decks.api';
 import { getDeckCards, getPendingCards, createCard, updateCard, deleteCard } from '@/api/cards.api';
 import { Button } from '@/components/ui/Button';
@@ -48,60 +48,48 @@ export function DeckDetailPage() {
     },
   });
 
-  // All cards pagination
-  const [allCards, setAllCards] = useState<CardResponse[]>([]);
-  const [allCursor, setAllCursor] = useState<PaginationParams>({ pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' });
-  const [allHasNext, setAllHasNext] = useState(false);
-  const [allInitial, setAllInitial] = useState(true);
-
-  const allCardsQuery = useQuery({
-    queryKey: ['cards', id, 'all', allCursor],
-    queryFn: async () => {
-      const data = await getDeckCards(id, allCursor);
-      if (allInitial) {
-        setAllCards(data.content);
-        setAllInitial(false);
-      } else {
-        setAllCards((prev) => [...prev, ...data.content]);
-      }
-      setAllHasNext(data.hasNext);
-      return data;
+  // All cards — infinite query
+  const allCardsInfinite = useInfiniteQuery({
+    queryKey: ['cards', id, 'all'],
+    queryFn: ({ pageParam }) => getDeckCards(id, pageParam),
+    initialPageParam: { pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' } as PaginationParams,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasNext) return undefined;
+      const content = lastPage.content;
+      if (content.length === 0) return undefined;
+      const last = content[content.length - 1] as CardResponse;
+      return {
+        lastId: last.id,
+        cursorValue: last.nextReviewDate,
+        pageSize: DEFAULT_PAGE_SIZE,
+        direction: 'ASC',
+      } as PaginationParams;
     },
     enabled: activeTab === 'all',
   });
 
-  // Pending cards pagination
-  const [pendingCards, setPendingCards] = useState<CardResponse[]>([]);
-  const [pendingCursor, setPendingCursor] = useState<PaginationParams>({ pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' });
-  const [pendingHasNext, setPendingHasNext] = useState(false);
-  const [pendingInitial, setPendingInitial] = useState(true);
-
-  const pendingCardsQuery = useQuery({
-    queryKey: ['cards', id, 'pending', pendingCursor],
-    queryFn: async () => {
-      const data = await getPendingCards(id, pendingCursor);
-      if (pendingInitial) {
-        setPendingCards(data.content);
-        setPendingInitial(false);
-      } else {
-        setPendingCards((prev) => [...prev, ...data.content]);
-      }
-      setPendingHasNext(data.hasNext);
-      return data;
+  // Pending cards — infinite query
+  const pendingCardsInfinite = useInfiniteQuery({
+    queryKey: ['cards', id, 'pending'],
+    queryFn: ({ pageParam }) => getPendingCards(id, pageParam),
+    initialPageParam: { pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' } as PaginationParams,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasNext) return undefined;
+      const content = lastPage.content;
+      if (content.length === 0) return undefined;
+      const last = content[content.length - 1] as CardResponse;
+      return {
+        lastId: last.id,
+        cursorValue: last.nextReviewDate,
+        pageSize: DEFAULT_PAGE_SIZE,
+        direction: 'ASC',
+      } as PaginationParams;
     },
     enabled: activeTab === 'pending',
   });
 
-  const resetPagination = useCallback(() => {
-    setAllCards([]);
-    setAllCursor({ pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' });
-    setAllHasNext(false);
-    setAllInitial(true);
-    setPendingCards([]);
-    setPendingCursor({ pageSize: DEFAULT_PAGE_SIZE, direction: 'ASC' });
-    setPendingHasNext(false);
-    setPendingInitial(true);
-  }, []);
+  const activeQuery = activeTab === 'all' ? allCardsInfinite : pendingCardsInfinite;
+  const currentCards = activeQuery.data?.pages.flatMap((page) => page.content) ?? [];
 
   // Mutations
   const createCardMutation = useMutation({
@@ -111,7 +99,6 @@ export function DeckDetailPage() {
       toast.success('Card created!');
       setCardModalOpen(false);
       resetCardForm();
-      resetPagination();
       queryClient.invalidateQueries({ queryKey: ['cards', id] });
       queryClient.invalidateQueries({ queryKey: ['decks'] });
     },
@@ -125,7 +112,6 @@ export function DeckDetailPage() {
       setCardModalOpen(false);
       setEditingCard(null);
       resetCardForm();
-      resetPagination();
       queryClient.invalidateQueries({ queryKey: ['cards', id] });
     },
   });
@@ -135,7 +121,6 @@ export function DeckDetailPage() {
     onSuccess: () => {
       toast.success('Card deleted!');
       setCardDeleteId(null);
-      resetPagination();
       queryClient.invalidateQueries({ queryKey: ['cards', id] });
       queryClient.invalidateQueries({ queryKey: ['decks'] });
     },
@@ -190,21 +175,6 @@ export function DeckDetailPage() {
 
   const isCardMutating = createCardMutation.isPending || updateCardMutation.isPending;
   const deck: DeckResponse | null | undefined = deckQuery.data;
-
-  const currentCards = activeTab === 'all' ? allCards : pendingCards;
-  const currentHasNext = activeTab === 'all' ? allHasNext : pendingHasNext;
-  const currentQuery = activeTab === 'all' ? allCardsQuery : pendingCardsQuery;
-  const currentInitial = activeTab === 'all' ? allInitial : pendingInitial;
-
-  const handleLoadMore = () => {
-    if (currentCards.length === 0) return;
-    const last = currentCards[currentCards.length - 1];
-    if (activeTab === 'all') {
-      setAllCursor((prev) => ({ ...prev, lastId: last.id, cursorValue: last.nextReviewDate }));
-    } else {
-      setPendingCursor((prev) => ({ ...prev, lastId: last.id, cursorValue: last.nextReviewDate }));
-    }
-  };
 
   return (
     <div>
@@ -265,13 +235,13 @@ export function DeckDetailPage() {
       </div>
 
       {/* Card list */}
-      {currentQuery.isLoading && currentInitial && <SkeletonList count={5} />}
+      {activeQuery.isLoading && <SkeletonList count={5} />}
 
-      {currentQuery.isError && currentInitial && (
-        <ErrorState onRetry={() => currentQuery.refetch()} />
+      {activeQuery.isError && !activeQuery.data && (
+        <ErrorState onRetry={() => activeQuery.refetch()} />
       )}
 
-      {!currentQuery.isLoading && currentCards.length === 0 && !currentQuery.isError && (
+      {!activeQuery.isLoading && currentCards.length === 0 && !activeQuery.isError && (
         <EmptyState
           icon={activeTab === 'all' ? '🃏' : '✅'}
           title={activeTab === 'all' ? 'No cards yet' : 'No pending cards'}
@@ -307,9 +277,9 @@ export function DeckDetailPage() {
             ))}
           </div>
           <PaginationLoader
-            hasNext={currentHasNext}
-            isLoading={currentQuery.isFetching && !currentInitial}
-            onLoadMore={handleLoadMore}
+            hasNext={activeQuery.hasNextPage}
+            isLoading={activeQuery.isFetchingNextPage}
+            onLoadMore={() => activeQuery.fetchNextPage()}
           />
         </>
       )}

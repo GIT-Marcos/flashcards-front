@@ -9,6 +9,7 @@ import { DeckFormPage } from '@/pages/DeckFormPage';
 import { StudyPage } from '@/pages/StudyPage';
 import { StatsPage } from '@/pages/StatsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { ReviewsPage } from '@/pages/ReviewsPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 export function AppRouter() {
@@ -24,6 +25,7 @@ export function AppRouter() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<Navigate to="/decks" replace />} />
             <Route path="/decks" element={<DeckListPage />} />
+            <Route path="/reviews" element={<ReviewsPage />} />
             <Route path="/decks/new" element={<DeckFormPage />} />
             <Route path="/decks/:deckId" element={<DeckDetailPage />} />
             <Route path="/decks/:deckId/edit" element={<DeckFormPage />} />

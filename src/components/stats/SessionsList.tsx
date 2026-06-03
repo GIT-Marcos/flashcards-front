@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { getSessions } from '@/api/sessions.api';
 import { Card } from '@/components/ui/Card';
 import { PaginationLoader } from '@/components/shared/PaginationLoader';
@@ -12,38 +11,36 @@ import type { SessionResponse } from '@/types/session.types';
 import type { PaginationParams } from '@/types/api.types';
 
 export function SessionsList() {
-  const [sessions, setSessions] = useState<SessionResponse[]>([]);
-  const [cursor, setCursor] = useState<PaginationParams>({ pageSize: DEFAULT_PAGE_SIZE, direction: 'DESC' });
-  const [hasNext, setHasNext] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  const { isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: ['sessions', cursor],
-    queryFn: async () => {
-      const data = await getSessions(cursor);
-      if (isInitialLoad) {
-        setSessions(data.content);
-        setIsInitialLoad(false);
-      } else {
-        setSessions((prev) => [...prev, ...data.content]);
-      }
-      setHasNext(data.hasNext);
-      return data;
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['sessions'],
+    queryFn: ({ pageParam }) => getSessions(pageParam),
+    initialPageParam: { pageSize: DEFAULT_PAGE_SIZE, direction: 'DESC' } as PaginationParams,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.hasNext) return undefined;
+      const content = lastPage.content;
+      if (content.length === 0) return undefined;
+      const last = content[content.length - 1] as SessionResponse;
+      return {
+        lastId: last.id,
+        cursorValue: last.startTime,
+        pageSize: DEFAULT_PAGE_SIZE,
+        direction: 'DESC',
+      } as PaginationParams;
     },
   });
 
-  const handleLoadMore = () => {
-    if (sessions.length === 0) return;
-    const last = sessions[sessions.length - 1];
-    setCursor((prev) => ({
-      ...prev,
-      lastId: last.id,
-      cursorValue: last.startTime,
-    }));
-  };
+  const sessions = data?.pages.flatMap((page) => page.content) ?? [];
 
-  if (isLoading && isInitialLoad) return <SkeletonList count={3} />;
-  if (isError) return <ErrorState onRetry={() => refetch()} />;
+  if (isLoading) return <SkeletonList count={3} />;
+  if (isError && !data) return <ErrorState onRetry={() => refetch()} />;
   if (sessions.length === 0) {
     return (
       <EmptyState
@@ -79,7 +76,7 @@ export function SessionsList() {
           </Card>
         ))}
       </div>
-      <PaginationLoader hasNext={hasNext} isLoading={isFetching && !isInitialLoad} onLoadMore={handleLoadMore} />
+      <PaginationLoader hasNext={hasNextPage} isLoading={isFetchingNextPage} onLoadMore={() => fetchNextPage()} />
     </div>
   );
 }
