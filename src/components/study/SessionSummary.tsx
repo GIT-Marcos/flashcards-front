@@ -17,8 +17,8 @@ export function SessionSummary({ cardsReviewed, correctCount, deckId }: SessionS
       <span className="text-6xl mb-4 block" role="img" aria-hidden="true">
         🎉
       </span>
-      <h2 className="text-2xl font-bold text-slate-900 mb-2">Session complete!</h2>
-      <p className="text-slate-500 mb-8">Great job! Here's your summary:</p>
+      <h2 className="text-2xl font-bold text-slate-900 mb-2">Deck complete!</h2>
+      <p className="text-slate-500 mb-8">Great job! Here's your summary of the deck:</p>
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <Card>
@@ -43,6 +43,9 @@ export function SessionSummary({ cardsReviewed, correctCount, deckId }: SessionS
         <Button onClick={() => navigate(`/decks/${deckId}`)}>Back to deck</Button>
         <Button variant="secondary" onClick={() => navigate('/decks')}>
           All decks
+        </Button>
+        <Button variant="secondary" onClick={() => navigate('/reviews')}>
+          Go to Reviews
         </Button>
       </div>
     </div>
