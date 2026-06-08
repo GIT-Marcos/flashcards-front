@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       originalRequest.url !== '/auth/login' &&
-      originalRequest.url !== '/auth/register' &&
+      originalRequest.url !== '/auth/signup' &&
       originalRequest.url !== '/auth/refresh-token'
     ) {
       if (isRefreshing) {
