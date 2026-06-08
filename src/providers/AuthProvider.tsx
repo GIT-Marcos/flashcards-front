@@ -1,14 +1,13 @@
 import { createContext, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { setAccessToken, setOnAuthFailure } from '@/api/client';
-import { login as apiLogin, register as apiRegister, logout as apiLogout, refreshToken } from '@/api/auth.api';
-import type { LoginRequest, RegisterRequest } from '@/types/auth.types';
+import { login as apiLogin, logout as apiLogout, refreshToken } from '@/api/auth.api';
+import type { LoginRequest } from '@/types/auth.types';
 
 interface AuthContextValue {
   username: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void;
 }
@@ -59,12 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsername(response.username);
   }, []);
 
-  const register = useCallback(async (data: RegisterRequest) => {
-    const response = await apiRegister(data);
-    setAccessToken(response.accessToken);
-    setUsername(response.username);
-  }, []);
-
   const logout = useCallback(async () => {
     try {
       await apiLogout();
@@ -80,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!username,
         isLoading,
         login,
-        register,
         logout,
         clearAuth,
       }}
