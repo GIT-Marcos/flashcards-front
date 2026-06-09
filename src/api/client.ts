@@ -76,6 +76,8 @@ apiClient.interceptors.response.use(
       !originalRequest._retry &&
       originalRequest.url !== '/auth/login' &&
       originalRequest.url !== '/auth/signup' &&
+      originalRequest.url !== '/auth/forgot-password' &&
+      originalRequest.url !== '/auth/reset-password' &&
       originalRequest.url !== '/auth/refresh-token'
     ) {
       if (isRefreshing) {
