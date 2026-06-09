@@ -19,9 +19,12 @@ No test, lint, formatter, or typecheck scripts are configured. `tsconfig.json` h
 All routes defined in `src/routes/index.tsx` using react-router-dom v7:
 
 - `/login`, `/register` — public
-- `/reviews` — protected
+- `/forgot-password` — public
+- `/auth/reset-password` — public
+- `/reviews` — protected (wrapped by `ProtectedRoute` + `AppLayout`)
 - `/decks`, `/decks/new`, `/decks/:deckId`, `/decks/:deckId/edit`, `/decks/:deckId/study` — protected (wrapped by `ProtectedRoute` + `AppLayout`)
-- `/stats`, `/settings` — protected
+- `/stats`, `/settings` — protected (wrapped by `ProtectedRoute` + `AppLayout`)
+- `/` — redirect to `/decks` (protected, wrapped by `ProtectedRoute` + `AppLayout`)
 - `*` — `NotFoundPage`
 
 `ProtectedRoute` reads `useAuth()`; redirects to `/login` if unauthenticated. `AppLayout` provides sidebar + `<Outlet />`.
@@ -57,15 +60,18 @@ No se necesita proxy de Vite. El backend ya configura CORS correctamente:
 - **Producción:** Se setea `VITE_API_URL` y `ALLOWED_ORIGINS` con las URLs correspondientes al deploy. El backend debe incluir todos los orígenes desde los que se sirva el frontend.
 - **Preflights OPTIONS:** Se disparan en cada request autenticado (header `Authorization`) y en POSTs a `/auth/login`, `/auth/refresh-token`, `/reviews/` (header `Time-Zone`). El backend los maneja automáticamente (Spring Boot).
 
-Si en el futuro se quisiera eliminar los preflights en desarrollo, se puede agregar `server.proxy` en `vite.config.ts` y cambiar `API_URL` a `''` en `src/lib/constants.ts`.
+If in the future you want to remove preflights in development, you can add `server.proxy` in `vite.config.ts` and change `VITE_API_URL` to `''` in `.env` so that `API_URL` in `src/lib/constants.ts` becomes `''`.
 
 ## Code conventions
 
 - **Named exports** everywhere (only `App.tsx` and `api/client.ts` use `export default`).
+- **`useAuth()` hook:** Provides authentication context and state management.
 - **Zod** schemas in `src/lib/validators.ts`, validated via `.safeParse()` in submit handlers. Types inferred: `type LoginFormData = z.infer<typeof loginSchema>`.
 - **`cn()` utility** in `src/lib/utils.ts` (hand-rolled, not `clsx`/`tailwind-merge` despite both being in deps).
 - **Emoji icons** throughout (no icon library).
-- **Sanitization:** `sanitizeHtml()` strips HTML tags via regex before sending user text to API.
+- **Sanitization:** `sanitizeHtml()` in `src/lib/sanitize.ts` strips HTML tags via regex before sending user text to API.
+- **UI Components:** Reusable components like `Button`, `Input`, `Card` are available in `src/components/ui/`.
+- **API Error Handling:** Uses `ProblemDetail` type for structured API error responses.
 - **Study session:** fetches all pages upfront, tracks current index + revealed state in local state.
 - **Mutation pattern:** always `queryClient.invalidateQueries({ queryKey: [...] })` on success — no direct cache updates.
 - **Review API:** exponential backoff on 409 Conflict (max 2 retries, base delay 250ms).
