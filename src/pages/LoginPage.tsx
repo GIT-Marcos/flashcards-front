@@ -103,6 +103,12 @@ export function LoginPage() {
             >
               {isRateLimited ? `Try again in ${retryAfter}s` : 'Sign in'}
             </Button>
+
+            <p className="text-center">
+              <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                Forgot your password?
+              </Link>
+            </p>
           </form>
         </div>
 
