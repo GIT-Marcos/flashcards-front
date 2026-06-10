@@ -8,11 +8,13 @@ import { loginSchema, type LoginFormData } from '@/lib/validators';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import type { ProblemDetail } from '@/types/api.types';
+import { useTranslation } from 'react-i18next';
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const { retryAfter, isRateLimited, handleRateLimitError } = useRateLimit();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState<LoginFormData>({ username: '', password: '' });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
@@ -43,15 +45,15 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(result.data);
-      toast.success('Welcome back!');
+      toast.success(t('common.welcome.back'));
       navigate('/decks', { replace: true });
     } catch (error) {
       handleRateLimitError(error);
       if (error instanceof AxiosError) {
         const problem = error.response?.data as ProblemDetail | undefined;
-        setServerError(problem?.detail || 'Login failed. Please try again.');
+        setServerError(problem?.detail || t('common.error.loginFailed'));
       } else {
-        setServerError('An unexpected error occurred.');
+        setServerError(t('common.error.unexpected'));
       }
     } finally {
       setIsSubmitting(false);
@@ -63,14 +65,14 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-5xl block mb-4">🧠</span>
-          <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
-          <p className="text-slate-500 mt-2">Sign in to continue studying</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t('common.welcome.back')}</h1>
+          <p className="text-slate-500 mt-2">{t('common.sign.in.to.continue.studying')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Username"
+              label={t('common.username')}
               value={form.username}
               onChange={(e) => handleChange('username', e.target.value)}
               error={errors.username}
@@ -79,7 +81,7 @@ export function LoginPage() {
               autoFocus
             />
             <Input
-              label="Password"
+              label={t('common.password')}
               type="password"
               value={form.password}
               onChange={(e) => handleChange('password', e.target.value)}
@@ -101,21 +103,21 @@ export function LoginPage() {
               isLoading={isSubmitting}
               disabled={isRateLimited}
             >
-              {isRateLimited ? `Try again in ${retryAfter}s` : 'Sign in'}
+              {isRateLimited ? `Try again in ${retryAfter}s` : t('common.sign.in')}
             </Button>
 
             <p className="text-center">
               <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                Forgot your password?
+                {t('common.forgot.password')}
               </Link>
             </p>
           </form>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Don't have an account?{' '}
+          {t('common.dont.have.an.account')}{' '}
           <Link to="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Create account
+            {t('common.create.account')}
           </Link>
         </p>
       </div>

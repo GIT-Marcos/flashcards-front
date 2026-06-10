@@ -2,6 +2,8 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const navItems = [
   { to: '/decks', label: 'Decks', icon: '📚' },
@@ -14,6 +16,7 @@ export function AppLayout() {
   const { username, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await logout();
@@ -58,7 +61,7 @@ export function AppLayout() {
               }
             >
               <span className="text-lg" aria-hidden="true">{item.icon}</span>
-              {item.label}
+              {t(`common.${item.to.slice(1)}`)}
             </NavLink>
           ))}
         </nav>
@@ -70,13 +73,16 @@ export function AppLayout() {
             </div>
             <span className="text-sm font-medium text-slate-700 truncate">{username}</span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
-          >
-            <span aria-hidden="true">🚪</span>
-            Log out
-          </button>
+          <div className="flex items-center justify-between">
+            <LanguageSwitcher />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+            >
+              <span aria-hidden="true">🚪</span>
+              {t('common.sign.out')}
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -93,7 +99,7 @@ export function AppLayout() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="text-lg font-bold text-slate-900">🧠 Flashcards</span>
+          <span className="text-lg font-bold text-slate-900">🧠 {t('common.decks')}</span>
         </header>
 
         <main className="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
