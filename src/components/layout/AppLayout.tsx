@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 const navItems = [
   { to: '/decks', label: 'Decks', icon: '📚' },
@@ -14,8 +15,11 @@ export function AppLayout() {
   const { username, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => setLogoutConfirmOpen(true);
+
+  const handleConfirmLogout = async () => {
     await logout();
     navigate('/login');
   };
@@ -71,13 +75,22 @@ export function AppLayout() {
             <span className="text-sm font-medium text-slate-700 truncate">{username}</span>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
           >
             <span aria-hidden="true">🚪</span>
             Log out
           </button>
         </div>
+
+        <ConfirmDialog
+          isOpen={logoutConfirmOpen}
+          onClose={() => setLogoutConfirmOpen(false)}
+          onConfirm={handleConfirmLogout}
+          title="Log out"
+          message="Are you sure you want to log out?"
+          confirmLabel="Log out"
+        />
       </aside>
 
       {/* Main content */}
