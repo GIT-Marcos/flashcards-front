@@ -93,7 +93,7 @@ export function AppLayout() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <span className="text-lg font-bold text-slate-900">🧠 Flashcards</span>
+          <span className="text-lg font-bold text-slate-900">🧠 Decks</span>
         </header>
 
         <main className="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
