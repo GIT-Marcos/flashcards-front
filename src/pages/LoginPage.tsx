@@ -51,9 +51,9 @@ export function LoginPage() {
       handleRateLimitError(error);
       if (error instanceof AxiosError) {
         const problem = error.response?.data as ProblemDetail | undefined;
-        setServerError(problem?.detail || t('common.error.loginFailed'));
+        setServerError(problem?.detail || t('common.loginFailed'));
       } else {
-        setServerError(t('common.error.unexpected'));
+        setServerError(t('common.unexpectedError'));
       }
     } finally {
       setIsSubmitting(false);
