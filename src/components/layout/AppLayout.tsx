@@ -82,16 +82,16 @@ export function AppLayout() {
             Log out
           </button>
         </div>
-
-        <ConfirmDialog
-          isOpen={logoutConfirmOpen}
-          onClose={() => setLogoutConfirmOpen(false)}
-          onConfirm={handleConfirmLogout}
-          title="Log out"
-          message="Are you sure you want to log out?"
-          confirmLabel="Log out"
-        />
       </aside>
+
+      <ConfirmDialog
+        isOpen={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleConfirmLogout}
+        title="Log out"
+        message="Are you sure you want to log out?"
+        confirmLabel="Log out"
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
