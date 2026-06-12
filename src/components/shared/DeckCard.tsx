@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { DeckResponse } from '@/types/deck.types';
 
 interface DeckCardProps {
@@ -10,6 +11,7 @@ interface DeckCardProps {
 }
 
 export function DeckCard({ deck }: DeckCardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -30,11 +32,11 @@ export function DeckCard({ deck }: DeckCardProps) {
           {deck.name}
         </h3>
         {deck.hasPendingCards && (
-          <Badge variant="warning">Due</Badge>
+          <Badge variant="warning">{t('decks:due')}</Badge>
         )}
       </div>
       <p className="text-xs text-slate-400 mb-4">
-        Created {formatDate(deck.createdAt)}
+        {t('decks:created', { date: formatDate(deck.createdAt) })}
       </p>
       {deck.hasPendingCards && (
         <Button
@@ -45,7 +47,7 @@ export function DeckCard({ deck }: DeckCardProps) {
           }}
           className="w-full"
         >
-          Study now
+          {t('decks:studyNow')}
         </Button>
       )}
     </Card>

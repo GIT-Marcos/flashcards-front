@@ -5,8 +5,10 @@ import { QualityDistributionChart } from '@/components/stats/QualityDistribution
 import { SessionsList } from '@/components/stats/SessionsList';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/shared/ErrorState';
+import { useTranslation } from 'react-i18next';
 
 export function StatsPage() {
+  const { t } = useTranslation();
   const { data: stats, isLoading, isError, refetch } = useQuery({
     queryKey: ['sessions', 'stats'],
     queryFn: getStats,
@@ -15,8 +17,8 @@ export function StatsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Statistics</h1>
-        <p className="text-sm text-slate-500 mt-1">Track your study progress</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('stats:title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('stats:trackProgress')}</p>
       </div>
 
       {isLoading && (

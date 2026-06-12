@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!isOpen) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -37,7 +39,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           <button
             onClick={onClose}
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-            aria-label="Close"
+            aria-label={t('common:close')}
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

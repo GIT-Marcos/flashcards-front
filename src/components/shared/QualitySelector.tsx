@@ -1,5 +1,6 @@
 import { QUALITY_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface QualitySelectorProps {
   onSelect: (quality: number) => void;
@@ -7,9 +8,10 @@ interface QualitySelectorProps {
 }
 
 export function QualitySelector({ onSelect, disabled }: QualitySelectorProps) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {Object.entries(QUALITY_LABELS).map(([quality, { label, color }]) => (
+      {Object.entries(QUALITY_LABELS).map(([quality, { color }]) => (
         <button
           key={quality}
           onClick={() => onSelect(Number(quality))}
@@ -20,7 +22,7 @@ export function QualitySelector({ onSelect, disabled }: QualitySelectorProps) {
           )}
         >
           <span className="block text-lg font-bold mb-1">{quality}</span>
-          <span className="block text-xs opacity-90">{label}</span>
+          <span className="block text-xs opacity-90">{t(`quality:${quality}`)}</span>
         </button>
       ))}
     </div>

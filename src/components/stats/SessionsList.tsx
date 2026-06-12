@@ -7,10 +7,12 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorState } from '@/components/shared/ErrorState';
 import { formatDateTime, formatDuration, formatPercentage } from '@/lib/utils';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 import type { SessionResponse } from '@/types/session.types';
 import type { PaginationParams } from '@/types/api.types';
 
 export function SessionsList() {
+  const { t } = useTranslation();
   const {
     data,
     isLoading,
@@ -45,15 +47,15 @@ export function SessionsList() {
     return (
       <EmptyState
         icon="📖"
-        title="No study sessions yet"
-        description="Start studying to see your session history!"
+        title={t('stats:noSessionsYet')}
+        description={t('stats:noSessionsDesc')}
       />
     );
   }
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Sessions</h3>
+      <h3 className="text-lg font-semibold text-slate-900 mb-4">{t('stats:recentSessions')}</h3>
       <div className="space-y-3">
         {sessions.map((session) => (
           <Card key={session.id}>
@@ -61,12 +63,12 @@ export function SessionsList() {
               <div>
                 <p className="font-medium text-slate-900">{formatDateTime(session.startTime)}</p>
                 <p className="text-sm text-slate-500">
-                  Duration: {formatDuration(session.durationSeconds)}
+                  {t('stats:duration', { duration: formatDuration(session.durationSeconds, t) })}
                 </p>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-slate-600">
-                  <span className="font-semibold">{session.cardsReviewed}</span> cards
+                    <span className="font-semibold">{session.cardsReviewed}</span> {t('stats:cards')}
                 </span>
                 <span className="text-emerald-600 font-semibold">
                   {formatPercentage(session.accuracyRate)}

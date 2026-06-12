@@ -8,10 +8,12 @@ import { ErrorState } from '@/components/shared/ErrorState';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 import type { DeckResponse } from '@/types/deck.types';
 import type { PaginationParams } from '@/types/api.types';
 
 export function DeckListPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const {
@@ -47,17 +49,17 @@ export function DeckListPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Decks</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage and study your flashcard decks</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('decks:myDecks')}</h1>
+          <p className="text-sm text-slate-500 mt-1">{t('decks:manageAndStudy')}</p>
         </div>
         <Button onClick={() => navigate('/decks/new')}>
-          + New Deck
+          {t('decks:newDeck')}
         </Button>
       </div>
 
       {/* All Decks Section */}
       <section>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">All Decks</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">{t('decks:allDecks')}</h2>
 
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -72,9 +74,9 @@ export function DeckListPage() {
         {!isLoading && !isError && allDecks.length === 0 && (
           <EmptyState
             icon="📚"
-            title="No decks yet"
-            description="Create your first deck to start studying with flashcards."
-            actionLabel="Create first deck"
+            title={t('empty:noDecksYet')}
+            description={t('empty:noDecksDesc')}
+            actionLabel={t('empty:createFirstDeck')}
             onAction={() => navigate('/decks/new')}
           />
         )}
