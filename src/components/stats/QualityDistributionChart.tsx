@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '@/components/ui/Card';
 import { QUALITY_LABELS } from '@/lib/constants';
+import { useTranslation } from 'react-i18next';
 
 interface QualityDistributionChartProps {
   distribution: Record<number, number>;
@@ -9,6 +10,7 @@ interface QualityDistributionChartProps {
 const COLORS = ['#dc2626', '#ef4444', '#f97316', '#eab308', '#34d399', '#059669'];
 
 export function QualityDistributionChart({ distribution }: QualityDistributionChartProps) {
+  const { t } = useTranslation();
   const data = Object.entries(QUALITY_LABELS).map(([quality]) => ({
     quality: Number(quality),
     label: `Q${quality}`,
@@ -17,7 +19,7 @@ export function QualityDistributionChart({ distribution }: QualityDistributionCh
 
   return (
     <Card>
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Quality Distribution</h3>
+      <h3 className="text-lg font-semibold text-slate-900 mb-4">{t('stats:qualityDistribution')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />

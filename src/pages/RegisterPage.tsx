@@ -5,12 +5,13 @@ import { useTimeZone } from '@/hooks/useTimeZone';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { registerSchema } from '@/lib/validators';
+import { registerSchema, translateFieldErrors } from '@/lib/validators';
 import { sanitizeHtml } from '@/lib/sanitize';
-import { AxiosError } from 'axios';
-import type { ProblemDetail } from '@/types/api.types';
+import { useTranslation } from 'react-i18next';
+import { getLocalizedErrorMessage } from '@/lib/errors';
 
 export function RegisterPage() {
+  const { t } = useTranslation();
   const timeZone = useTimeZone();
   const { retryAfter, isRateLimited, handleRateLimitError } = useRateLimit();
 
@@ -39,12 +40,7 @@ export function RegisterPage() {
     const result = registerSchema.safeParse(data);
 
     if (!result.success) {
-      const fieldErrors: Partial<Record<string, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setErrors(fieldErrors);
+      setErrors(translateFieldErrors(t, result.error));
       return;
     }
 
@@ -56,15 +52,10 @@ export function RegisterPage() {
         password: result.data.password,
         zoneInfo: result.data.zoneInfo,
       });
-      setSuccessMessage(response.message || 'Verification email sent. Please check your inbox.');
+      setSuccessMessage(response.message || t('toast:verificationSent'));
     } catch (error) {
       handleRateLimitError(error);
-      if (error instanceof AxiosError) {
-        const problem = error.response?.data as ProblemDetail | undefined;
-        setServerError(problem?.detail || 'Registration failed. Please try again.');
-      } else {
-        setServerError('An unexpected error occurred.');
-      }
+      setServerError(getLocalizedErrorMessage(error, t));
     } finally {
       setIsSubmitting(false);
     }
@@ -75,15 +66,15 @@ export function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-5xl block mb-4">🧠</span>
-          <h1 className="text-3xl font-bold text-slate-900">Create account</h1>
-          <p className="text-slate-500 mt-2">Start mastering your flashcards</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t('auth:createAccount')}</h1>
+          <p className="text-slate-500 mt-2">{t('auth:startMastering')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           {successMessage ? (
             <div className="text-center space-y-6">
               <span className="text-5xl block">📧</span>
-              <h2 className="text-2xl font-bold text-slate-900">Verify your email</h2>
+              <h2 className="text-2xl font-bold text-slate-900">{t('auth:verifyEmail')}</h2>
               <p className="text-sm text-slate-600 leading-relaxed">
                 {successMessage}
               </p>
@@ -92,14 +83,14 @@ export function RegisterPage() {
                   to="/login"
                   className="inline-flex justify-center items-center w-full bg-indigo-600 text-white rounded-xl py-3 px-4 text-sm font-medium hover:bg-indigo-700 transition"
                 >
-                  Go to Sign in
+                  {t('auth:goToSignIn')}
                 </Link>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="Username"
+                label={t('auth:username')}
                 value={form.username}
                 onChange={(e) => handleChange('username', e.target.value)}
                 error={errors.username}
@@ -108,7 +99,7 @@ export function RegisterPage() {
                 autoFocus
               />
               <Input
-                label="Email"
+                label={t('auth:email')}
                 type="email"
                 value={form.email}
                 onChange={(e) => handleChange('email', e.target.value)}
@@ -117,7 +108,7 @@ export function RegisterPage() {
                 autoComplete="email"
               />
               <Input
-                label="Password"
+                label={t('auth:password')}
                 type="password"
                 value={form.password}
                 onChange={(e) => handleChange('password', e.target.value)}
@@ -126,7 +117,7 @@ export function RegisterPage() {
                 autoComplete="new-password"
               />
               <Input
-                label="Confirm Password"
+                label={t('auth:confirmPassword')}
                 type="password"
                 value={form.confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
@@ -148,11 +139,11 @@ export function RegisterPage() {
                 isLoading={isSubmitting}
                 disabled={isRateLimited}
               >
-                {isRateLimited ? `Try again in ${retryAfter}s` : 'Create account'}
+                {isRateLimited ? t('auth:tryAgainIn', { seconds: retryAfter }) : t('auth:createAccount')}
               </Button>
 
               <p className="text-xs text-slate-400 text-center">
-                Timezone detected: {timeZone}
+                {t('auth:timezoneDetected', { timezone: timeZone })}
               </p>
             </form>
           )}
@@ -160,9 +151,9 @@ export function RegisterPage() {
 
         {!successMessage && (
           <p className="text-center text-sm text-slate-500 mt-6">
-            Already have an account?{' '}
+            {t('auth:alreadyHaveAccount')}{' '}
             <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
-              Sign in
+              {t('auth:signInLink')}
             </Link>
           </p>
         )}

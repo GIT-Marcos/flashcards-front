@@ -1,5 +1,6 @@
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,18 +18,19 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmLabel = 'Delete',
+  confirmLabel,
   isLoading,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <p className="text-sm text-slate-600 mb-6">{message}</p>
       <div className="flex justify-end gap-3">
         <Button variant="secondary" onClick={onClose} disabled={isLoading}>
-          Cancel
+          {t('common:cancel')}
         </Button>
         <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
-          {confirmLabel}
+          {confirmLabel || t('common:delete')}
         </Button>
       </div>
     </Modal>

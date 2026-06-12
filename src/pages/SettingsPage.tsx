@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMe, updateMe, deleteMe } from '@/api/users.api';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { SkeletonCard } from '@/components/ui/Skeleton';
@@ -12,13 +13,17 @@ import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import {
   profileSchema,
   changePasswordSchema,
+  translateFieldErrors,
   type ProfileFormData,
   type ChangePasswordFormData,
 } from '@/lib/validators';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n/config';
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const { clearAuth } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -71,7 +76,7 @@ export function SettingsPage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users', 'me'] });
-      toast.success('Profile updated!');
+      toast.success(t('toast:profileUpdated'));
     },
   });
 
@@ -83,7 +88,7 @@ export function SettingsPage() {
       }),
     onSuccess: () => {
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      toast.success('Password changed!');
+      toast.success(t('toast:passwordChanged'));
     },
   });
 
@@ -92,7 +97,7 @@ export function SettingsPage() {
     onSuccess: () => {
       clearAuth();
       navigate('/login', { replace: true });
-      toast.success('Account deleted.');
+      toast.success(t('toast:accountDeleted'));
     },
   });
 
@@ -100,12 +105,7 @@ export function SettingsPage() {
     e.preventDefault();
     const result = profileSchema.safeParse(profileForm);
     if (!result.success) {
-      const errs: Partial<Record<string, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!errs[field]) errs[field] = issue.message;
-      }
-      setProfileErrors(errs);
+      setProfileErrors(translateFieldErrors(t, result.error));
       return;
     }
     setProfileErrors({});
@@ -116,12 +116,7 @@ export function SettingsPage() {
     e.preventDefault();
     const result = changePasswordSchema.safeParse(passwordForm);
     if (!result.success) {
-      const errs: Partial<Record<string, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!errs[field]) errs[field] = issue.message;
-      }
-      setPasswordErrors(errs);
+      setPasswordErrors(translateFieldErrors(t, result.error));
       return;
     }
     setPasswordErrors({});
@@ -142,16 +137,16 @@ export function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your profile and preferences</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('settings:title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('settings:manageProfile')}</p>
       </div>
 
       {/* Profile Section */}
       <Card className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Profile</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">{t('settings:profile')}</h2>
         <form onSubmit={handleProfileSubmit} className="space-y-4">
           <Input
-            label="Username"
+            label={t('auth:username')}
             value={profileForm.username}
             onChange={(e) => {
               setProfileForm((p) => ({ ...p, username: e.target.value }));
@@ -161,7 +156,7 @@ export function SettingsPage() {
             disabled={updateProfileMutation.isPending}
           />
           <Input
-            label="Email"
+            label={t('auth:email')}
             type="email"
             value={profileForm.email}
             onChange={(e) => {
@@ -175,7 +170,7 @@ export function SettingsPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="sessionThreshold" className="block text-sm font-medium text-slate-700 mb-1">
-                Session Threshold (min)
+                {t('settings:sessionThreshold')}
               </label>
               <input
                 id="sessionThreshold"
@@ -192,7 +187,7 @@ export function SettingsPage() {
             </div>
             <div>
               <label htmlFor="startOfDay" className="block text-sm font-medium text-slate-700 mb-1">
-                Start of Day (hour)
+                {t('settings:startOfDay')}
               </label>
               <input
                 id="startOfDay"
@@ -221,22 +216,22 @@ export function SettingsPage() {
               className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
             />
             <label htmlFor="notifications" className="text-sm text-slate-700">
-              Enable notifications
+              {t('settings:enableNotifications')}
             </label>
           </div>
 
           <Button type="submit" isLoading={updateProfileMutation.isPending}>
-            Save Profile
+            {t('settings:saveProfile')}
           </Button>
         </form>
       </Card>
 
       {/* Password Section */}
       <Card className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Change Password</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">{t('settings:changePassword')}</h2>
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           <Input
-            label="Current Password"
+            label={t('settings:currentPassword')}
             type="password"
             value={passwordForm.currentPassword}
             onChange={(e) => {
@@ -248,7 +243,7 @@ export function SettingsPage() {
             autoComplete="current-password"
           />
           <Input
-            label="New Password"
+            label={t('auth:newPassword')}
             type="password"
             value={passwordForm.newPassword}
             onChange={(e) => {
@@ -260,7 +255,7 @@ export function SettingsPage() {
             autoComplete="new-password"
           />
           <Input
-            label="Confirm New Password"
+            label={t('auth:confirmNewPassword')}
             type="password"
             value={passwordForm.confirmPassword}
             onChange={(e) => {
@@ -272,19 +267,34 @@ export function SettingsPage() {
             autoComplete="new-password"
           />
           <Button type="submit" isLoading={updatePasswordMutation.isPending}>
-            Change Password
+            {t('settings:changePassword')}
           </Button>
         </form>
       </Card>
 
+      {/* Language */}
+      <Card className="mb-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">{t('settings:language')}</h2>
+        <p className="text-sm text-slate-500 mb-4">{t('settings:languageDescription')}</p>
+        <Select
+          label=""
+          value={i18n.language}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          options={[
+            { value: 'en', label: t('common:languageEn') },
+            { value: 'es', label: t('common:languageEs') },
+          ]}
+        />
+      </Card>
+
       {/* Danger Zone */}
       <Card className="border-red-200">
-        <h2 className="text-lg font-semibold text-red-600 mb-2">Danger Zone</h2>
+        <h2 className="text-lg font-semibold text-red-600 mb-2">{t('settings:dangerZone')}</h2>
         <p className="text-sm text-slate-500 mb-4">
-          Permanently delete your account and all associated data. This action cannot be undone.
+          {t('settings:dangerZoneDesc')}
         </p>
         <Button variant="danger" onClick={() => setDeleteConfirm(true)}>
-          Delete Account
+          {t('settings:deleteAccount')}
         </Button>
       </Card>
 
@@ -292,9 +302,9 @@ export function SettingsPage() {
         isOpen={deleteConfirm}
         onClose={() => setDeleteConfirm(false)}
         onConfirm={() => deleteAccountMutation.mutate()}
-        title="Delete Account"
-        message="This will permanently delete your account and all your decks, cards, and study history. This action cannot be undone."
-        confirmLabel="Delete My Account"
+        title={t('settings:deleteAccount')}
+        message={t('settings:deleteAccountConfirm')}
+        confirmLabel={t('settings:deleteMyAccount')}
         isLoading={deleteAccountMutation.isPending}
       />
     </div>

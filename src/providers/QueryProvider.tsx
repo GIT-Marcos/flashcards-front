@@ -1,20 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ReactNode, useState } from 'react';
-import { AxiosError } from 'axios';
 import { toast } from 'sonner';
-import type { ProblemDetail } from '@/types/api.types';
+import i18n from '@/i18n/config';
+import { getLocalizedErrorMessage } from '@/lib/errors';
 
 function handleGlobalError(error: unknown) {
-  if (error instanceof AxiosError) {
-    const problem = error.response?.data as ProblemDetail | undefined;
-    if (problem?.detail) {
-      toast.error(problem.detail);
-    } else if (error.response?.status === 429) {
-      toast.error('Too many requests. Please try again later.');
-    } else if (error.message) {
-      toast.error(error.message);
-    }
-  }
+  const message = getLocalizedErrorMessage(error, i18n.t);
+  toast.error(message);
 }
 
 export function QueryProvider({ children }: { children: ReactNode }) {

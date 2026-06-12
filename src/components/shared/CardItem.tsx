@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/Card';
 import { truncateText, formatDateTime } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { CardResponse } from '@/types/card.types';
 
 interface CardItemProps {
@@ -8,6 +9,7 @@ interface CardItemProps {
 }
 
 export function CardItem({ card, onClick }: CardItemProps) {
+  const { t } = useTranslation();
   const isPending = new Date(card.nextReviewDate) <= new Date();
 
   return (
@@ -34,7 +36,7 @@ export function CardItem({ card, onClick }: CardItemProps) {
         </div>
         <div className="flex-shrink-0 text-right">
           <span className={`text-xs ${isPending ? 'text-amber-600 font-medium' : 'text-slate-400'}`}>
-            {isPending ? 'Due now' : formatDateTime(card.nextReviewDate)}
+            {isPending ? t('decks:dueNow') : formatDateTime(card.nextReviewDate)}
           </span>
         </div>
       </div>

@@ -4,12 +4,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createDeck, updateDeck, getDecks } from '@/api/decks.api';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { deckSchema, type DeckFormData } from '@/lib/validators';
+import { deckSchema, translateFieldErrors, type DeckFormData } from '@/lib/validators';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import type { DeckResponse } from '@/types/deck.types';
 
 export function DeckFormPage() {
+  const { t } = useTranslation();
   const { deckId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -43,7 +45,7 @@ export function DeckFormPage() {
     mutationFn: (data: DeckFormData) => createDeck({ name: sanitizeHtml(data.name) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['decks'] });
-      toast.success('Deck created!');
+      toast.success(t('toast:deckCreated'));
       navigate('/decks');
     },
   });
@@ -52,7 +54,7 @@ export function DeckFormPage() {
     mutationFn: (data: DeckFormData) => updateDeck(Number(deckId), { name: sanitizeHtml(data.name) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['decks'] });
-      toast.success('Deck updated!');
+      toast.success(t('toast:deckUpdated'));
       navigate(`/decks/${deckId}`);
     },
   });
@@ -64,12 +66,7 @@ export function DeckFormPage() {
 
     const result = deckSchema.safeParse(form);
     if (!result.success) {
-      const fieldErrors: Partial<Record<keyof DeckFormData, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof DeckFormData;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setErrors(fieldErrors);
+      setErrors(translateFieldErrors(t, result.error));
       return;
     }
 
@@ -83,14 +80,14 @@ export function DeckFormPage() {
   return (
     <div className="max-w-lg mx-auto">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">
-        {isEditing ? 'Edit Deck' : 'Create New Deck'}
+        {isEditing ? t('decks:editDeck') : t('decks:createNewDeck')}
       </h1>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           <Input
-            label="Deck Name"
-            placeholder="e.g., Spanish Vocabulary"
+            label={t('decks:deckName')}
+            placeholder={t('decks:deckNamePlaceholder')}
             value={form.name}
             onChange={(e) => {
               setForm({ name: e.target.value });
@@ -104,10 +101,10 @@ export function DeckFormPage() {
 
           <div className="flex gap-3">
             <Button type="submit" isLoading={isPending} className="flex-1">
-              {isEditing ? 'Save Changes' : 'Create Deck'}
+              {isEditing ? t('common:saveChanges') : t('decks:createDeck')}
             </Button>
             <Button type="button" variant="secondary" onClick={() => navigate(-1)} disabled={isPending}>
-              Cancel
+              {t('common:cancel')}
             </Button>
           </div>
         </form>

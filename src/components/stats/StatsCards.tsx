@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/Card';
-import { formatPercentage } from '@/lib/utils';
+import { formatNumber, formatPercentage } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { UserStatsResponse } from '@/types/session.types';
 
 interface StatsCardsProps {
@@ -7,11 +8,12 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ stats }: StatsCardsProps) {
+  const { t } = useTranslation();
   const items = [
-    { label: 'Total Reviews', value: stats.totalReviews.toLocaleString(), icon: '📝', color: 'text-indigo-600' },
-    { label: 'Accuracy Rate', value: formatPercentage(stats.globalAccuracyRate), icon: '🎯', color: 'text-emerald-600' },
-    { label: 'Total Sessions', value: stats.totalSessions.toLocaleString(), icon: '📅', color: 'text-amber-600' },
-    { label: 'Cards Reviewed', value: stats.totalCardsReviewed.toLocaleString(), icon: '🃏', color: 'text-purple-600' },
+    { label: t('stats:totalReviews'), value: formatNumber(stats.totalReviews), icon: '📝', color: 'text-indigo-600' },
+    { label: t('stats:accuracyRate'), value: formatPercentage(stats.globalAccuracyRate), icon: '🎯', color: 'text-emerald-600' },
+    { label: t('stats:totalSessions'), value: formatNumber(stats.totalSessions), icon: '📅', color: 'text-amber-600' },
+    { label: t('stats:cardsReviewed'), value: formatNumber(stats.totalCardsReviewed), icon: '🃏', color: 'text-purple-600' },
   ];
 
   return (

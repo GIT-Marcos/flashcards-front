@@ -4,12 +4,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { loginSchema, type LoginFormData } from '@/lib/validators';
+import { loginSchema, translateFieldErrors } from '@/lib/validators';
 import { toast } from 'sonner';
-import { AxiosError } from 'axios';
-import type { ProblemDetail } from '@/types/api.types';
+import { useTranslation } from 'react-i18next';
+import { getLocalizedErrorMessage } from '@/lib/errors';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const { login } = useAuth();
   const navigate = useNavigate();
   const { retryAfter, isRateLimited, handleRateLimitError } = useRateLimit();
@@ -31,28 +32,18 @@ export function LoginPage() {
 
     const result = loginSchema.safeParse(form);
     if (!result.success) {
-      const fieldErrors: Partial<Record<keyof LoginFormData, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof LoginFormData;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setErrors(fieldErrors);
+      setErrors(translateFieldErrors(t, result.error));
       return;
     }
 
     setIsSubmitting(true);
     try {
       await login(result.data);
-      toast.success('Welcome back!');
+      toast.success(t('toast:welcomeBack'));
       navigate('/decks', { replace: true });
     } catch (error) {
       handleRateLimitError(error);
-      if (error instanceof AxiosError) {
-        const problem = error.response?.data as ProblemDetail | undefined;
-        setServerError(problem?.detail || 'Login failed. Please try again.');
-      } else {
-        setServerError('An unexpected error occurred.');
-      }
+      setServerError(getLocalizedErrorMessage(error, t));
     } finally {
       setIsSubmitting(false);
     }
@@ -63,14 +54,14 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-5xl block mb-4">🧠</span>
-          <h1 className="text-3xl font-bold text-slate-900">Welcome back</h1>
-          <p className="text-slate-500 mt-2">Sign in to continue studying</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t('auth:welcomeBack')}</h1>
+          <p className="text-slate-500 mt-2">{t('auth:signInToContinue')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Username"
+              label={t('auth:username')}
               value={form.username}
               onChange={(e) => handleChange('username', e.target.value)}
               error={errors.username}
@@ -79,7 +70,7 @@ export function LoginPage() {
               autoFocus
             />
             <Input
-              label="Password"
+              label={t('auth:password')}
               type="password"
               value={form.password}
               onChange={(e) => handleChange('password', e.target.value)}
@@ -101,21 +92,21 @@ export function LoginPage() {
               isLoading={isSubmitting}
               disabled={isRateLimited}
             >
-              {isRateLimited ? `Try again in ${retryAfter}s` : 'Sign in'}
+              {isRateLimited ? t('auth:tryAgainIn', { seconds: retryAfter }) : t('auth:signIn')}
             </Button>
 
             <p className="text-center">
               <Link to="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                Forgot your password?
+                {t('auth:forgotPassword')}
               </Link>
             </p>
           </form>
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          Don't have an account?{' '}
+          {t('auth:dontHaveAccount')}{' '}
           <Link to="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Create account
+            {t('auth:createAccount')}
           </Link>
         </p>
       </div>

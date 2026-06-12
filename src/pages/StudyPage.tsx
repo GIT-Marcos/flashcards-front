@@ -9,10 +9,12 @@ import { SessionSummary } from '@/components/study/SessionSummary';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { formatDateTime } from '@/lib/utils';
 import type { CardResponse } from '@/types/card.types';
 
 export function StudyPage() {
+  const { t } = useTranslation();
   const { deckId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,7 +55,7 @@ export function StudyPage() {
       }
       setCards(allCards);
     } catch {
-      toast.error('Failed to load pending cards');
+      toast.error(t('study:failedToLoad'));
     } finally {
       setIsLoadingCards(false);
     }
@@ -106,9 +108,9 @@ export function StudyPage() {
     return (
       <EmptyState
         icon="✅"
-        title="No pending cards"
-        description="No cards are due for review. Come back later!"
-        actionLabel="Back to decks"
+        title={t('empty:noPendingCards')}
+        description={t('empty:noPendingCardsDesc')}
+        actionLabel={t('decks:backToDecks')}
         onAction={() => navigate('/decks')}
       />
     );
@@ -128,19 +130,18 @@ export function StudyPage() {
           <button
             onClick={() => navigate(`/decks/${id}`)}
             className="text-slate-400 hover:text-slate-600 transition-colors"
-            aria-label="Back to deck"
+            aria-label={t('study:backToDeck')}
           >
             ←
           </button>
-          <h1 className="text-xl font-bold text-slate-900">Study Session</h1>
+          <h1 className="text-xl font-bold text-slate-900">{t('study:studySession')}</h1>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-slate-500">
-            Card <span className="font-semibold text-slate-900">{currentIndex + 1}</span> of{' '}
-            <span className="font-semibold text-slate-900">{cards.length}</span>
+            {t('study:cardOf', { current: currentIndex + 1, total: cards.length })}
           </span>
           <span className="text-emerald-600 font-semibold">
-            ✓ {reviewedCount} reviewed
+            {t('study:reviewed', { count: reviewedCount })}
           </span>
         </div>
       </div>
@@ -163,14 +164,14 @@ export function StudyPage() {
       {/* Quality buttons */}
       {isRevealed && (
         <div className="max-w-2xl mx-auto mt-6">
-          <p className="text-sm text-slate-500 text-center mb-3">How well did you know this?</p>
+          <p className="text-sm text-slate-500 text-center mb-3">{t('study:howWellDidYouKnow')}</p>
           <QualitySelector
             onSelect={handleQualitySelect}
             disabled={reviewMutation.isPending}
           />
           {lastReviewDate && (
             <p className="text-xs text-slate-400 text-center mt-4">
-              Next review: {formatDateTime(lastReviewDate)}
+              {t('study:nextReview', { date: formatDateTime(lastReviewDate) })}
             </p>
           )}
         </div>

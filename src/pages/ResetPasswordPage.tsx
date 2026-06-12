@@ -4,11 +4,12 @@ import { resetPassword } from '@/api/auth.api';
 import { useRateLimit } from '@/hooks/useRateLimit';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { resetPasswordSchema } from '@/lib/validators';
-import { AxiosError } from 'axios';
-import type { ProblemDetail } from '@/types/api.types';
+import { resetPasswordSchema, translateFieldErrors } from '@/lib/validators';
+import { useTranslation } from 'react-i18next';
+import { getLocalizedErrorMessage } from '@/lib/errors';
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
   const { retryAfter, isRateLimited, handleRateLimitError } = useRateLimit();
@@ -41,12 +42,7 @@ export function ResetPasswordPage() {
     const result = resetPasswordSchema.safeParse(data);
 
     if (!result.success) {
-      const fieldErrors: Partial<Record<string, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setErrors(fieldErrors);
+      setErrors(translateFieldErrors(t, result.error));
       return;
     }
 
@@ -56,12 +52,7 @@ export function ResetPasswordPage() {
       setSuccessMessage(response.message);
     } catch (error) {
       handleRateLimitError(error);
-      if (error instanceof AxiosError) {
-        const problem = error.response?.data as ProblemDetail | undefined;
-        setServerError(problem?.detail || 'Failed to reset password. Please try again.');
-      } else {
-        setServerError('An unexpected error occurred.');
-      }
+      setServerError(getLocalizedErrorMessage(error, t));
     } finally {
       setIsSubmitting(false);
     }
@@ -73,19 +64,19 @@ export function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <span className="text-5xl block mb-4">🔒</span>
-            <h1 className="text-3xl font-bold text-slate-900">Invalid reset link</h1>
-            <p className="text-slate-500 mt-2">This link is missing or invalid</p>
+            <h1 className="text-3xl font-bold text-slate-900">{t('auth:invalidResetLink')}</h1>
+            <p className="text-slate-500 mt-2">{t('auth:invalidResetLinkDesc')}</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center space-y-4">
             <p className="text-sm text-slate-600">
-              The password reset link you used is invalid. Please request a new one.
+              {t('auth:invalidResetLinkMsg')}
             </p>
             <Link
               to="/forgot-password"
               className="inline-flex justify-center items-center w-full bg-indigo-600 text-white rounded-xl py-3 px-4 text-sm font-medium hover:bg-indigo-700 transition"
             >
-              Request new reset link
+              {t('auth:requestNewResetLink')}
             </Link>
           </div>
         </div>
@@ -98,29 +89,29 @@ export function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-5xl block mb-4">🔒</span>
-          <h1 className="text-3xl font-bold text-slate-900">Reset your password</h1>
-          <p className="text-slate-500 mt-2">Choose a new password for your account</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t('auth:resetPasswordTitle')}</h1>
+          <p className="text-slate-500 mt-2">{t('auth:resetPasswordDesc')}</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
           {successMessage ? (
             <div className="text-center space-y-6">
               <span className="text-5xl block">✅</span>
-              <h2 className="text-2xl font-bold text-slate-900">Password reset successful</h2>
+              <h2 className="text-2xl font-bold text-slate-900">{t('auth:passwordResetSuccess')}</h2>
               <p className="text-sm text-slate-600 leading-relaxed">{successMessage}</p>
               <div className="pt-4 border-t border-slate-100">
                 <Link
                   to="/login"
                   className="inline-flex justify-center items-center w-full bg-indigo-600 text-white rounded-xl py-3 px-4 text-sm font-medium hover:bg-indigo-700 transition"
                 >
-                  Go to Sign in
+                  {t('auth:goToSignIn')}
                 </Link>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <Input
-                label="New Password"
+                label={t('auth:newPassword')}
                 type="password"
                 value={newPassword}
                 onChange={(e) => handleChange('newPassword', e.target.value)}
@@ -130,7 +121,7 @@ export function ResetPasswordPage() {
                 autoFocus
               />
               <Input
-                label="Confirm Password"
+                label={t('auth:confirmNewPassword')}
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
@@ -152,7 +143,7 @@ export function ResetPasswordPage() {
                 isLoading={isSubmitting}
                 disabled={isRateLimited}
               >
-                {isRateLimited ? `Try again in ${retryAfter}s` : 'Reset password'}
+                {isRateLimited ? t('auth:tryAgainIn', { seconds: retryAfter }) : t('auth:resetPassword')}
               </Button>
             </form>
           )}

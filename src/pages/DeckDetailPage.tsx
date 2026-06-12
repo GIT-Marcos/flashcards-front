@@ -13,10 +13,11 @@ import { ErrorState } from '@/components/shared/ErrorState';
 import { CardItem } from '@/components/shared/CardItem';
 import { PaginationLoader } from '@/components/shared/PaginationLoader';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { cardSchema, type CardFormData } from '@/lib/validators';
+import { cardSchema, translateFieldErrors, type CardFormData } from '@/lib/validators';
 import { sanitizeHtml } from '@/lib/sanitize';
 import { DEFAULT_PAGE_SIZE } from '@/lib/constants';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import type { CardResponse } from '@/types/card.types';
 import type { DeckResponse } from '@/types/deck.types';
 import type { PaginationParams } from '@/types/api.types';
@@ -24,6 +25,7 @@ import type { PaginationParams } from '@/types/api.types';
 type TabType = 'all' | 'pending';
 
 export function DeckDetailPage() {
+  const { t } = useTranslation();
   const { deckId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -96,7 +98,7 @@ export function DeckDetailPage() {
     mutationFn: (data: CardFormData) =>
       createCard(id, { front: sanitizeHtml(data.front), back: sanitizeHtml(data.back) }),
     onSuccess: () => {
-      toast.success('Card created!');
+      toast.success(t('toast:cardCreated'));
       setCardModalOpen(false);
       resetCardForm();
       queryClient.invalidateQueries({ queryKey: ['cards', id] });
@@ -108,7 +110,7 @@ export function DeckDetailPage() {
     mutationFn: ({ cardId, data }: { cardId: number; data: CardFormData }) =>
       updateCard(cardId, { front: sanitizeHtml(data.front), back: sanitizeHtml(data.back) }),
     onSuccess: () => {
-      toast.success('Card updated!');
+      toast.success(t('toast:cardUpdated'));
       setCardModalOpen(false);
       setEditingCard(null);
       resetCardForm();
@@ -119,7 +121,7 @@ export function DeckDetailPage() {
   const deleteCardMutation = useMutation({
     mutationFn: (cardId: number) => deleteCard(cardId),
     onSuccess: () => {
-      toast.success('Card deleted!');
+      toast.success(t('toast:cardDeleted'));
       setCardDeleteId(null);
       queryClient.invalidateQueries({ queryKey: ['cards', id] });
       queryClient.invalidateQueries({ queryKey: ['decks'] });
@@ -129,7 +131,7 @@ export function DeckDetailPage() {
   const deleteDeckMutation = useMutation({
     mutationFn: () => deleteDeck(id),
     onSuccess: () => {
-      toast.success('Deck deleted!');
+      toast.success(t('toast:deckDeleted'));
       queryClient.invalidateQueries({ queryKey: ['decks'] });
       navigate('/decks', { replace: true });
     },
@@ -157,12 +159,7 @@ export function DeckDetailPage() {
     e.preventDefault();
     const result = cardSchema.safeParse(cardForm);
     if (!result.success) {
-      const fieldErrors: Partial<Record<keyof CardFormData, string>> = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof CardFormData;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setCardErrors(fieldErrors);
+      setCardErrors(translateFieldErrors(t, result.error));
       return;
     }
 
@@ -185,27 +182,27 @@ export function DeckDetailPage() {
             <button
               onClick={() => navigate('/decks')}
               className="text-slate-400 hover:text-slate-600 transition-colors"
-              aria-label="Back to decks"
+              aria-label={t('decks:backToDecks')}
             >
               ←
             </button>
             <h1 className="text-2xl font-bold text-slate-900">
-              {deck?.name || 'Loading...'}
+              {deck?.name || t('common:loading')}
             </h1>
-            {deck?.hasPendingCards && <Badge variant="warning">Due</Badge>}
+            {deck?.hasPendingCards && <Badge variant="warning">{t('decks:due')}</Badge>}
           </div>
         </div>
         <div className="flex gap-2">
           {deck?.hasPendingCards && (
             <Button onClick={() => navigate(`/decks/${id}/study`)}>
-              Study now
+              {t('decks:studyNow')}
             </Button>
           )}
           <Button variant="secondary" onClick={() => navigate(`/decks/${id}/edit`)}>
-            Edit
+            {t('common:edit')}
           </Button>
           <Button variant="danger" onClick={() => setDeleteConfirmOpen(true)}>
-            Delete
+            {t('common:delete')}
           </Button>
         </div>
       </div>
@@ -222,7 +219,7 @@ export function DeckDetailPage() {
                 : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
-            {tab === 'all' ? 'All Cards' : 'Pending'}
+            {tab === 'all' ? t('decks:allCards') : t('decks:pending')}
           </button>
         ))}
       </div>
@@ -230,7 +227,7 @@ export function DeckDetailPage() {
       {/* Add card button */}
       <div className="flex justify-end mb-4">
         <Button size="sm" onClick={openCreateCard}>
-          + Add Card
+          {t('decks:addCard')}
         </Button>
       </div>
 
@@ -244,13 +241,13 @@ export function DeckDetailPage() {
       {!activeQuery.isLoading && currentCards.length === 0 && !activeQuery.isError && (
         <EmptyState
           icon={activeTab === 'all' ? '🃏' : '✅'}
-          title={activeTab === 'all' ? 'No cards yet' : 'No pending cards'}
+          title={activeTab === 'all' ? t('empty:noCardsYet') : t('empty:noPendingCards')}
           description={
             activeTab === 'all'
-              ? 'This deck has no cards. Add your first card!'
-              : 'No cards are due for review. Come back later!'
+              ? t('empty:noCardsDesc')
+              : t('empty:noPendingCardsDesc')
           }
-          actionLabel={activeTab === 'all' ? 'Add first card' : undefined}
+          actionLabel={activeTab === 'all' ? t('empty:addFirstCard') : undefined}
           onAction={activeTab === 'all' ? openCreateCard : undefined}
         />
       )}
@@ -267,7 +264,7 @@ export function DeckDetailPage() {
                     setCardDeleteId(card.id);
                   }}
                   className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500"
-                  aria-label="Delete card"
+                  aria-label={t('decks:deleteCard')}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -292,12 +289,12 @@ export function DeckDetailPage() {
           setEditingCard(null);
           resetCardForm();
         }}
-        title={editingCard ? 'Edit Card' : 'Add Card'}
+        title={editingCard ? t('decks:editCard') : t('decks:addCardModal')}
       >
         <form onSubmit={handleCardSubmit} className="space-y-4">
           <Input
-            label="Front"
-            placeholder="Question or term"
+            label={t('decks:front')}
+            placeholder={t('decks:questionOrTerm')}
             value={cardForm.front}
             onChange={(e) => {
               setCardForm((prev) => ({ ...prev, front: e.target.value }));
@@ -310,11 +307,11 @@ export function DeckDetailPage() {
           />
           <div className="w-full">
             <label htmlFor="card-back" className="block text-sm font-medium text-slate-700 mb-1">
-              Back
+              {t('decks:back')}
             </label>
             <textarea
               id="card-back"
-              placeholder="Answer or definition"
+              placeholder={t('decks:answerOrDefinition')}
               value={cardForm.back}
               onChange={(e) => {
                 setCardForm((prev) => ({ ...prev, back: e.target.value }));
@@ -343,10 +340,10 @@ export function DeckDetailPage() {
               }}
               disabled={isCardMutating}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
             <Button type="submit" isLoading={isCardMutating}>
-              {editingCard ? 'Save' : 'Add Card'}
+              {editingCard ? t('common:save') : t('decks:addCard')}
             </Button>
           </div>
         </form>
@@ -357,9 +354,9 @@ export function DeckDetailPage() {
         isOpen={deleteConfirmOpen}
         onClose={() => setDeleteConfirmOpen(false)}
         onConfirm={() => deleteDeckMutation.mutate()}
-        title="Delete Deck"
-        message="Are you sure you want to delete this deck? All cards will be permanently removed. This action cannot be undone."
-        confirmLabel="Delete Deck"
+        title={t('decks:deleteDeck')}
+        message={t('decks:deleteDeckConfirm')}
+        confirmLabel={t('decks:deleteDeck')}
         isLoading={deleteDeckMutation.isPending}
       />
 
@@ -370,9 +367,9 @@ export function DeckDetailPage() {
         onConfirm={() => {
           if (cardDeleteId !== null) deleteCardMutation.mutate(cardDeleteId);
         }}
-        title="Delete Card"
-        message="Are you sure you want to delete this card? This action cannot be undone."
-        confirmLabel="Delete Card"
+        title={t('decks:deleteCard')}
+        message={t('decks:deleteCardConfirm')}
+        confirmLabel={t('decks:deleteCard')}
         isLoading={deleteCardMutation.isPending}
       />
     </div>

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/Button';
+import { useTranslation } from 'react-i18next';
 import type { CardResponse } from '@/types/card.types';
 
 interface FlashCardProps {
@@ -8,6 +9,7 @@ interface FlashCardProps {
 }
 
 export function FlashCard({ card, onShowAnswer, isRevealed }: FlashCardProps) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-2xl mx-auto">
       <div className="rounded-2xl bg-white border border-slate-200 shadow-lg overflow-hidden">
@@ -34,7 +36,7 @@ export function FlashCard({ card, onShowAnswer, isRevealed }: FlashCardProps) {
       {!isRevealed && (
         <div className="flex justify-center mt-6">
           <Button size="lg" onClick={onShowAnswer}>
-            Show answer
+            {t('study:showAnswer')}
           </Button>
         </div>
       )}
