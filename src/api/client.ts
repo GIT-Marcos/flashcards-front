@@ -37,7 +37,7 @@ const apiClient = axios.create({
   },
 });
 
-const TIME_ZONE_ENDPOINTS = ['/auth/login', '/auth/refresh-token', '/reviews/'];
+const TIME_ZONE_ENDPOINTS = ['/auth/login', '/auth/refresh-token', '/reviews/', '/auth/signup'];
 
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
