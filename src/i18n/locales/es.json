@@ -155,7 +155,11 @@
     "deleteMyAccount": "Eliminar mi Cuenta",
     "deleteAccountConfirm": "Esto eliminará permanentemente tu cuenta y todos tus mazos, tarjetas e historial de estudio. Esta acción no se puede deshacer.",
     "language": "Idioma",
-    "languageDescription": "Elige el idioma de la interfaz"
+    "languageDescription": "Elige el idioma de la interfaz",
+    "timezone": "Zona horaria",
+    "timezoneStored": "Almacenada: {{zone}}",
+    "timezoneChanged": "Tu zona horaria ha cambiado a {{browser}}. Se actualizará en tu próximo inicio de sesión o revisión.",
+    "timezoneHint": "El servidor usa tu zona horaria para programar notificaciones a tu hora preferida."
   },
   "quality": {
     "0": "No recordado",

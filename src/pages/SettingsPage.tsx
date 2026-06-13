@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMe, updateMe, deleteMe } from '@/api/users.api';
 import { useAuth } from '@/hooks/useAuth';
+import { useTimeZone } from '@/hooks/useTimeZone';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -27,11 +28,18 @@ export function SettingsPage() {
   const { clearAuth } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const browserTimeZone = useTimeZone();
 
   const { data: user, isLoading, isError, refetch } = useQuery({
+
     queryKey: ['users', 'me'],
     queryFn: getMe,
   });
+
+  const timeZoneChanged = useMemo(
+    () => user && browserTimeZone !== user.zone,
+    [user, browserTimeZone]
+  );
 
   // Profile form
   const [profileForm, setProfileForm] = useState<ProfileFormData>({
@@ -225,6 +233,24 @@ export function SettingsPage() {
           </Button>
         </form>
       </Card>
+
+      {/* Timezone Section */}
+      {user && (
+        <Card className="mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">{t('settings:timezone')}</h2>
+          <p className="text-sm text-slate-500 mb-2">
+            {t('settings:timezoneStored', { zone: user.zone })}
+          </p>
+          {timeZoneChanged && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700">
+              {t('settings:timezoneChanged', { browser: browserTimeZone })}
+            </div>
+          )}
+          <p className="text-xs text-slate-400 mt-2">
+            {t('settings:timezoneHint')}
+          </p>
+        </Card>
+      )}
 
       {/* Password Section */}
       <Card className="mb-6">

@@ -155,7 +155,11 @@
     "deleteMyAccount": "Delete My Account",
     "deleteAccountConfirm": "This will permanently delete your account and all your decks, cards, and study history. This action cannot be undone.",
     "language": "Language",
-    "languageDescription": "Choose your interface language"
+    "languageDescription": "Choose your interface language",
+    "timezone": "Timezone",
+    "timezoneStored": "Stored: {{zone}}",
+    "timezoneChanged": "Your timezone has changed to {{browser}}. It will be updated on your next login or review.",
+    "timezoneHint": "The server uses your timezone to schedule notifications at your preferred hour."
   },
   "quality": {
     "0": "Not remembered",
