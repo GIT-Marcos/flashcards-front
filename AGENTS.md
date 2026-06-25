@@ -76,6 +76,15 @@ If in the future you want to remove preflights in development, you can add `serv
 - **Mutation pattern:** always `queryClient.invalidateQueries({ queryKey: [...] })` on success — no direct cache updates.
 - **Review API:** exponential backoff on 409 Conflict (max 2 retries, base delay 250ms).
 
+## AI Generation
+
+- **API Keys:** Managed in `src/pages/SettingsPage.tsx` (sección "AI API Keys"). Query key `['api-keys']`. Functions in `src/api/api-keys.api.ts`.
+- **Endpoints AI:** `src/api/ai.api.ts` — three functions: `generateCardsFromFile`, `generateDeckFromFile`, `generateDeckFromTopic`. File upload variants use `FormData` with `Content-Type: multipart/form-data`.
+- **Model field:** Only rendered when provider is `OPENROUTER` (the only one that actually uses the `model` parameter from the backend). Other providers show a hint with the hardcoded default model (e.g. `gpt-4o-mini`).
+- **Provider options:** Defined as `{ value, labelKey }` arrays outside components, resolved via `t(labelKey)` at render time inside `<Select>`.
+- **Generation flow — DeckFormPage:** Two extra buttons ("Generate from file" / "Generate from topic") in create mode. Each opens a modal, calls the API, invalidates `['decks']`, and navigates to the new deck.
+- **Generation flow — DeckDetailPage:** "Generate with AI" button next to "Add Card". Modal with file upload. Calls `generateCardsFromFile`, invalidates `['cards', id]` and `['decks']` on success.
+
 ## Build quirk
 
 `vite-plugin-singlefile` bundles all assets into a single HTML file on `npm run build`.
